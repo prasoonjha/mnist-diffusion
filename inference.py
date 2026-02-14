@@ -1,6 +1,7 @@
 import argparse
 import os
 from typing import Optional, Tuple
+from pathlib import Path
 
 import torch
 from torchvision.utils import save_image
@@ -47,49 +48,38 @@ def generate_sequence(
     return tiled.clamp(0.0, 1.0)
 
 
-def main(number_string: str = "101", output_path: str = "generated_sequence.png"):
-    generator, device = load_generator()
-    sequence_image = generate_sequence(number_string, generator, device)
+DEFAULT_WEIGHTS = "checkpoints/generator.pth"
+RELEASE_WEIGHTS = "release/generator.pth"
 
-    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
-    save_image(sequence_image, output_path)
-    print(f"Saved generated sequence '{number_string}' to {output_path}")
+def resolve_weights_path(user_path: str | None = None) -> str:
+    if user_path:
+        return user_path
+    # Keep trained/checkpoints as default behavior, fallback to release for fresh users
+    if Path(DEFAULT_WEIGHTS).exists():
+        return DEFAULT_WEIGHTS
+    return RELEASE_WEIGHTS
+
+
+def main(number_string: str = "101", out_path: str = "generated_sequence.png", weights_path: str | None = None):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    ckpt = resolve_weights_path(weights_path)
+
+    generator = Generator().to(device)
+    generator.load_state_dict(torch.load(ckpt, map_location=device))
+    generator.eval()
+
+    img = generate_sequence(number_string, generator, device)
+    img.save(out_path)
+    print(f"Saved: {out_path} (weights: {ckpt})")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate a sequence of MNIST digits with a trained cGAN")
-    parser.add_argument(
-        "sequence_positional",
-        nargs="?",
-        default=None,
-        help="Digit string to generate, e.g. 101 or 90817",
-    )
-    parser.add_argument(
-        "out_positional",
-        nargs="?",
-        default=None,
-        help="Path to save output image",
-    )
-    parser.add_argument(
-        "--sequence",
-        type=str,
-        default=None,
-        help="Digit string to generate, e.g. 101 or 90817",
-    )
-    parser.add_argument(
-        "--out",
-        type=str,
-        default=None,
-        help="Path to save output image",
-    )
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("sequence", nargs="?", default="101", help="Digit sequence, e.g. 314159")
+    parser.add_argument("out", nargs="?", default="generated_sequence.png", help="Output image path")
+    parser.add_argument("--weights", default=None, help="Optional generator weights path")
     args = parser.parse_args()
 
-    sequence = args.sequence if args.sequence is not None else args.sequence_positional
-    output_path = args.out if args.out is not None else args.out_positional
-
-    if sequence is None:
-        sequence = "101"
-    if output_path is None:
-        output_path = "generated_sequence.png"
-
-    main(sequence, output_path)
+    main(args.sequence, args.out, args.weights)

@@ -31,7 +31,6 @@ logs/
 *.pt
 *.pth
 
-
-# Data caches
-data/
-MNIST/
+# allow shipped release artifacts
+!release/
+!release/*.pth

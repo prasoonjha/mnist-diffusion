@@ -24,13 +24,12 @@ python3 -m pip install torch torchvision
 From project root:
 
 ```bash
-cd /Users/prasoonjha/dev/ai/mnist-diffusion
 python3 train.py
 ```
 
 ## Demo
 
-![Generated 101](generated_101.png)
+<img src="generated_101.png" alt="Generated 101" width="700" />
 
 ## Architecture (cGAN)
 
@@ -93,3 +92,25 @@ Because the Generator is label-conditional, inference can generate each characte
 2. Sample a noise vector for each digit
 3. Generate one `28x28` image per digit with its label
 4. Concatenate horizontally to create one final sequence image
+
+## Quick Start (No Training Required)
+
+This repo ships a pretrained generator at:
+
+- `release/generator.pth`
+
+Run directly:
+
+```bash
+python3 inference.py 314159 generated_314159.png
+```
+
+Default behavior:
+1. tries `checkpoints/generator.pth` (your locally trained weights)
+2. falls back to `release/generator.pth` (pretrained shipped weights)
+
+You can also pass a custom checkpoint:
+
+```bash
+python3 inference.py 314159 generated_314159.png --weights /path/to/generator.pth
+```
