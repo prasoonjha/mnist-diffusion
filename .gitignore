@@ -30,6 +30,7 @@ runs/
 logs/
 *.pt
 *.pth
+/data/MNIST/
 
 # allow shipped release artifacts
 !release/
