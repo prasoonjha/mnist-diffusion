@@ -31,8 +31,6 @@ logs/
 *.pt
 *.pth
 
-# Generated outputs
-generated_*.png
 
 # Data caches
 data/
