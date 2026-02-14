@@ -27,3 +27,7 @@ From project root:
 cd /Users/prasoonjha/dev/ai/mnist-diffusion
 python3 train.py
 ```
+
+## Demo
+
+![Generated 101](generated_101.png)
